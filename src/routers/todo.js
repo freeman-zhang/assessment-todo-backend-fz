@@ -10,7 +10,7 @@ import { verifyToken } from '../functions/cookies.js';
 dayjs.extend(utc);
 const router = express.Router();
 
-export default ({todoRepository}) => {
+export default ({ todoRepository }) => {
     // Create new todo
     router.post('/', auth, async (req, res) => {
         try {
@@ -31,11 +31,31 @@ export default ({todoRepository}) => {
                 return res.status(201).send(resultTodo);
             }
             console.error(validateTodo.errors);
-            return res.status(400).send({error: "Invalid field used."});
+            return res.status(400).send({ error: "Invalid field used." });
         }
         catch (err) {
             console.error(err);
-            return res.status(500).send({error: "Todo creation failed."});
+            return res.status(500).send({ error: "Todo creation failed." });
+        }
+    });
+
+    //Get all todos under an user id
+    router.get('/', auth, async (req, res) => {
+        try {
+            let session = verifyToken(req.cookies['todox-session']);
+
+            const todos = await todoRepository.find(session.userID);
+
+            if (todos) {
+                res.status(200).send({ todos });
+            }
+            else {
+                return res.status(400).send({});
+            }
+        }
+        catch (err) {
+            console.error(err);
+            res.status(500).send({ error: "Failed to fetch todos." });
         }
     });
 
