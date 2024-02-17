@@ -18,12 +18,14 @@ export default ({ todoRepository }) => {
 
             const todoID = uuidv4();
             const created = dayjs().utc().toISOString();
+            const completed = false;
 
             let newTodo = {
                 ...req.body,
                 todoID,
                 userID: session.userID,
-                created
+                created,
+                completed
             };
 
             if (validateTodo(newTodo)) {
@@ -47,7 +49,7 @@ export default ({ todoRepository }) => {
             const todos = await todoRepository.find(session.userID);
 
             if (todos) {
-                res.status(200).send({ todos });
+                res.status(200).json({ todos });
             }
             else {
                 return res.status(400).send({});
@@ -55,7 +57,28 @@ export default ({ todoRepository }) => {
         }
         catch (err) {
             console.error(err);
-            res.status(500).send({ error: "Failed to fetch todos." });
+            res.status(500).send({ error: "Failed to find todos." });
+        }
+    });
+
+    //Flips the completed boolean of the todoID
+    router.post('/update', auth, async (req, res) => {
+        try {
+            let session = verifyToken(req.cookies['todox-session']);
+
+            const todoID = req.body.todoID;
+
+            if (todoID) {
+                let updatedToDo = await todoRepository.updateOne(todoID, session.userID);
+                return res.status(200).send({ updatedToDo });
+            }
+            else {
+                return res.status(400).send({});
+            }
+        }
+        catch (err) {
+            console.error(err);
+            res.status(500).send({ error: "Failed to update todos." });
         }
     });
 

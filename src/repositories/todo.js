@@ -14,8 +14,20 @@ export default (db) => {
         });
     }
 
+    //update function that flips the completed boolean of the todo
+    //Takes in todoID and userID so that we can confirm the task updated belongs to user
+    async function updateOne(todoID, userID) {
+        return await collection.updateOne({
+            todoID: todoID,
+            userID: userID
+        },
+            [{ $set: { completed: { $not: "$completed" } } }]
+        );
+    }
+
     return {
         insertOne,
-        find
+        find,
+        updateOne
     };
 };
